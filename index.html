@@ -1,9 +1,11 @@
-<div id="info"><p id="p1"></p></div>
-<div id="info2"><p id="p2"></p></div>
-<body>
+
+<body style="background-color:#000000;">
 <canvas id="mCanvas">
 </canvas>
-</body>
+
+<div id="left" style="float: left; color: white; font-family:Courier New; font-size:30px"></div>
+<div id="right" style="float: right; color: white; font-family:Courier New; font-size:30px"></div>
+<div id="center" style="margin: 0 auto; width: 500px; color: white; font-family:Courier New; font-size:30px"></div>
 <script src="https://threejs.org/build/three.js"></script>
 <script>
     // Var Init
@@ -46,14 +48,13 @@
         var highScore = Math.max(clk.getElapsedTime(), currHigh);
         localStorage.setItem("someVarKey", highScore);
 
-        document.getElementById("p2").innerHTML = "Highscore: "
-        + highScore.toString().substring(0,5);
+        document.getElementById("right").innerHTML = "High: " + highScore.toString().substring(0,5);
     }
 
     document.addEventListener("keydown", onDocumentKeyDown, false);
     function onDocumentKeyDown(event) {
         var keyCode = event.which;
-        if (keyCode == 87) {
+        if ((keyCode == 87 || keyCode == 38) && !boxIsMoving) {
             // UP
             let temp = boxCurrDir;
             boxCurrDir = boxUpDir;
@@ -62,7 +63,7 @@
             boxCurrDir.multiplyScalar(.25);
             boxIsMoving = 1;
 
-        } else if (keyCode == 83) {
+        } else if ((keyCode == 83 || keyCode == 40)&& !boxIsMoving) {
             //to get over the edge
             box.translateX(boxCurrDir.x);
             box.translateY(boxCurrDir.y);
@@ -76,7 +77,8 @@
             boxCurrDir.multiplyScalar(.2);
             boxIsMoving = 1;
 
-        } else if (keyCode == 65 && !boxIsMoving) {
+        } else if ((keyCode == 65 || keyCode == 37) && !boxIsMoving) {
+            // left
             boxCurrDir.applyAxisAngle(boxUpDir, Math.PI/2);
             boxCurrDir.x = Math.round(boxCurrDir.x);
             boxCurrDir.y = Math.round(boxCurrDir.y);
@@ -85,7 +87,8 @@
             boxCurrDir.multiplyScalar(.2);
             boxIsMoving = 1;
 
-        } else if (keyCode == 68 && !boxIsMoving) {
+        } else if ((keyCode == 68 || keyCode == 39) && !boxIsMoving) {
+            // right
             boxCurrDir.applyAxisAngle(boxUpDir, -Math.PI/2);
             boxCurrDir.x = Math.round(boxCurrDir.x);
             boxCurrDir.y = Math.round(boxCurrDir.y);
@@ -131,6 +134,7 @@
     }
 
     function begin() {
+        document.getElementById("center").innerHTML = "";
         camera.position.x = 10;
         camera.position.y = 10;
         camera.position.z = -10;
@@ -161,7 +165,7 @@
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );
         renderer.setClearColor(0xffffff, 0);
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(window.innerWidth, window.innerHeight-100);
         document.body.appendChild(renderer.domElement);
 
         // scene
@@ -275,8 +279,8 @@
                 || (pathPt.x == centerPt.x && pathPt.z == centerPt.z && Math.abs(pathPt.y - centerPt.y) < 2)
                 || (pathPt.y == centerPt.y && pathPt.z == centerPt.z && Math.abs(pathPt.x - centerPt.x) < 2)
             ) {
-                document.getElementById("p1").innerHTML = "too slow. RIP. "
-                    + clk.getElapsedTime().toString().substring(0,5);
+                document.getElementById("center").innerHTML = "too slow. RIP. "
+                document.getElementById("left").innerHTML = clk.getElapsedTime().toString().substring(0,5);
                 updateHighscore();
                 isDead = 1;
             }
@@ -345,7 +349,7 @@
     {
         let delta = clk.getElapsedTime();
 
-        document.getElementById("p1").innerHTML = delta.toString().substring(0,5);
+        document.getElementById("left").innerHTML = delta.toString().substring(0,5);
         if (delta * Math.log2(delta + 2) > secClk && !isDead) {
             secClk ++;
             placePath();
@@ -383,7 +387,6 @@
                     || (pathPt.x == centerPt.x && pathPt.z == centerPt.z && Math.abs(pathPt.y - centerPt.y) < 2)
                     || (pathPt.y == centerPt.y && pathPt.z == centerPt.z && Math.abs(pathPt.x - centerPt.x) < 2)
                 ) {
-                    document.getElementById("p1").innerHTML = "Score: " + clk.getElapsedTime().toString().substring(0,5);
                     // color path
                     for (let j = 0; j <= i; j++) {
                         pathArr[j].material.color.set('#ffffff');
@@ -392,8 +395,8 @@
                 }
             }
             // DEAD
-            document.getElementById("p1").innerHTML = "you fell off the path. RIP. "
-                + clk.getElapsedTime().toString().substring(0,5);
+            document.getElementById("center").innerHTML = "you fell off the path. RIP. ";
+            document.getElementById("left").innerHTML = clk.getElapsedTime().toString().substring(0,5);
             updateHighscore();
             isDead = 1;
         }
@@ -429,3 +432,4 @@
     }
 
 </script>
+</body>
