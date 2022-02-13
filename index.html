@@ -5,7 +5,10 @@
 
 <div id="left" style="float: left; color: white; font-family:Courier New; font-size:30px"></div>
 <div id="right" style="float: right; color: white; font-family:Courier New; font-size:30px"></div>
-<div id="center" style="margin: 0 auto; width: 500px; color: white; font-family:Courier New; font-size:30px"></div>
+<div id="center" style="margin: 0 auto; width: 300px;">
+    <div style="float: left; color: white; font-family:Courier New; font-size:30px">Shape Rotator</div>
+<!--    <img src="img.png" width="30" height="30" class="popup" onclick="showPopup()" style="font-size:30px;color:#ffffff; float: right;"></img>-->
+</div>
 <script src="https://threejs.org/build/three.js"></script>
 <script>
     // Var Init
@@ -30,11 +33,15 @@
     let boxFinalPos = new THREE.Vector3(0, 0, .5);
 
     let boxIsMoving = 1;
+    let totalMoves = 1;
     let isDead = 0;
 
     let prevDelta = 0;
 
+    let randomQuat0 = new THREE.Quaternion();
+    let randomQuat1 = new THREE.Quaternion();
     let randomQuat = new THREE.Quaternion();
+    let whichQuat = 0;
     let cameraPoint = new THREE.Vector3();
 
     init();
@@ -45,10 +52,13 @@
 
     function updateHighscore() {
         var currHigh = localStorage.getItem("someVarKey");
-        var highScore = Math.max(clk.getElapsedTime(), currHigh);
+        let timePerMove = clk.getElapsedTime() / totalMoves;
+
+        var highScore = (timePerMove < 6.5) ? Math.max(clk.getElapsedTime(), currHigh) : currHigh;
         localStorage.setItem("someVarKey", highScore);
 
-        document.getElementById("right").innerHTML = "High: " + highScore.toString().substring(0,5);
+        document.getElementById("right").innerHTML = "Best: " + highScore.toString().substring(0,5);
+        console.log("update high score called at" + Date().toString());
     }
 
     document.addEventListener("keydown", onDocumentKeyDown, false);
@@ -103,6 +113,7 @@
         }
     };
     function cleanUp() {
+        totalMoves = 1;
         for (let i = 0; i < pathArr.length; i++){
             scene.remove(pathArr[i]);
         }
@@ -134,7 +145,6 @@
     }
 
     function begin() {
-        document.getElementById("center").innerHTML = "";
         camera.position.x = 10;
         camera.position.y = 10;
         camera.position.z = -10;
@@ -157,8 +167,10 @@
     }
 
     function init() {
-        updateHighscore();
-        randomQuat.random();
+        updateHighscore()
+
+        randomQuat0.random();
+        randomQuat1.random();
         // renderer
         renderer = new THREE.WebGLRenderer({canvas: document.getElementById("mCanvas"),
             alpha: true});
@@ -279,8 +291,9 @@
                 || (pathPt.x == centerPt.x && pathPt.z == centerPt.z && Math.abs(pathPt.y - centerPt.y) < 2)
                 || (pathPt.y == centerPt.y && pathPt.z == centerPt.z && Math.abs(pathPt.x - centerPt.x) < 2)
             ) {
-                document.getElementById("center").innerHTML = "too slow. RIP. "
-                document.getElementById("left").innerHTML = clk.getElapsedTime().toString().substring(0,5);
+                let timePerMove = clk.getElapsedTime() / totalMoves;
+                document.getElementById("left").innerHTML =  (timePerMove < 6.5) ? clk.getElapsedTime().toString().substring(0,5)
+                    + " - too slow " : "??? - you left";
                 updateHighscore();
                 isDead = 1;
             }
@@ -379,6 +392,7 @@
             box.translateZ(boxCurrDir.z);
         }
         else if (boxIsMoving) {
+            totalMoves ++;
             // CHECK IF DEAD
             boxIsMoving = 0;
             for (let i = 0; i < pathArr.length; i++) {
@@ -395,8 +409,8 @@
                 }
             }
             // DEAD
-            document.getElementById("center").innerHTML = "you fell off the path. RIP. ";
-            document.getElementById("left").innerHTML = clk.getElapsedTime().toString().substring(0,5);
+            document.getElementById("left").innerHTML = clk.getElapsedTime().toString().substring(0,5)
+            +" - wrong move";
             updateHighscore();
             isDead = 1;
         }
@@ -410,7 +424,27 @@
             camera.position.z = centerPt.z;
 
             // rotation here
-            camera.quaternion.rotateTowards(randomQuat, .03);
+            if (whichQuat) {
+                if(randomQuat0.angleTo(randomQuat1) < Math.PI/8) {
+                    whichQuat = !whichQuat;
+                    // generated angle must be > pi/2
+                    do {
+                        randomQuat0.random();
+                    } while(randomQuat0.angleTo(randomQuat1) < Math.PI/2);
+                }
+                randomQuat0.rotateTowards(randomQuat1, .03);
+                camera.quaternion.rotateTowards(randomQuat0, .03);
+            }
+            else {
+                if(randomQuat0.angleTo(randomQuat1) < Math.PI/8) {
+                    whichQuat = !whichQuat;
+                    do {
+                        randomQuat1.random();
+                    } while(randomQuat0.angleTo(randomQuat1) < Math.PI/2);
+                }
+                randomQuat1.rotateTowards(randomQuat0, .03);
+                camera.quaternion.rotateTowards(randomQuat1, .03);
+            }
 
             let tempCameraPoint = new THREE.Vector3();
             camera.getWorldDirection(tempCameraPoint);
@@ -421,14 +455,6 @@
             camera.position.x += (-10 * cameraPoint.x);
             camera.position.y += (-10 * cameraPoint.y);
             camera.position.z += (-10 * cameraPoint.z);
-
-            let delta = clk.getElapsedTime();
-            if (delta > quatClk && !isDead) {
-                randomQuat.random();
-                quatClk += 1;
-            }
-
-            //camera.lookAt(centerPt.x, centerPt.y, centerPt.z);
     }
 
 </script>
