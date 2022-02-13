@@ -2,15 +2,56 @@
 <body style="background-color:#000000;">
 <canvas id="mCanvas">
 </canvas>
+<style>
+    #overlay {
+        position: fixed;
+        display: none;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 2;
+        cursor: pointer;
+    }
 
+    .center-fit {
+        max-width: 100%;
+        max-height: 100vh;
+        margin: auto;
+    }
+
+    #text{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        font-size: 50px;
+        color: white;
+        transform: translate(-50%,-50%);
+        -ms-transform: translate(-50%,-50%);
+    }
+</style>
+<div id="overlay" onclick="off()">
+    <img class="center-fit" src="instructions.png" style="margin: 100px"></img>
+</div>
 <div id="left" style="float: left; color: white; font-family:Courier New; font-size:30px"></div>
 <div id="right" style="float: right; color: white; font-family:Courier New; font-size:30px"></div>
 <div id="center" style="margin: 0 auto; width: 300px;">
     <div style="float: left; color: white; font-family:Courier New; font-size:30px">Shape Rotator</div>
-<!--    <img src="img.png" width="30" height="30" class="popup" onclick="showPopup()" style="font-size:30px;color:#ffffff; float: right;"></img>-->
+    <img src="img.png" onclick="on()" width="30" height="30" class="popup" onclick="showPopup()" style="font-size:30px;color:#ffffff; float: right;"></img>
 </div>
 <script src="https://threejs.org/build/three.js"></script>
+
 <script>
+    function on() {
+        document.getElementById("overlay").style.display = "block";
+    }
+
+    function off() {
+        document.getElementById("overlay").style.display = "none";
+    }
     // Var Init
     var renderer, scene, camera, box, transformControl, orbitControl, geometry, material, poseMatrix;
     //Box coordinate
@@ -58,7 +99,6 @@
         localStorage.setItem("someVarKey", highScore);
 
         document.getElementById("right").innerHTML = "Best: " + highScore.toString().substring(0,5);
-        console.log("update high score called at" + Date().toString());
     }
 
     document.addEventListener("keydown", onDocumentKeyDown, false);
